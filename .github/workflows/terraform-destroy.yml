@@ -1,7 +1,13 @@
-name: terraform-destroy.yml
+name: "Terraform Destroy"
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "45 23 * * *"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
 
 env:
   TF_CLOUD_ORGANIZATION: "Kuraiji"
