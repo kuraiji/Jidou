@@ -1,17 +1,32 @@
-variable "instance_type" {
-  type = string                     # The type of the variable, in this case a string
-  default = "t2.micro"                 # Default value for the variable
-  description = "The type of EC2 instance" # Description of what this variable represents
-}
-
 variable "instance_name" {
-  type = string
-  default = "Jidou"
-  description = "The name of the EC2 instance"
+  type        = string
+  default     = "Jidou"
+  description = "The name of the project"
 }
 
-variable "instance_ami" {
-  type = string
-  default = "ami-00ddc330f6182b5cb"
-  description = "The ami of the EC2 instance"
+variable "instance_region" {
+  type        = string
+  default     = "us-west-1"
+  description = "The region of the project"
+}
+
+variable "bucket_name" {
+  type        = string
+  default     = "jidou"
+  description = "The name of the bucket"
+}
+
+variable "instance_environment" {
+  type        = string
+  default     = "Dev"
+  description = "The name of the environment"
+}
+
+variable "index_document" {
+  type    = string
+  default = "index.html"
+}
+variable "error_document" {
+  type    = string
+  default = "error.html"
 }
