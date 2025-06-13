@@ -4,16 +4,38 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"strings"
+	"time"
 
 	jidouConfig "jidou/internal/config"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/labstack/echo/v4"
 )
+
+const TableName = "JIDOU"
+
+type Post struct {
+	Date    string `dynamodbav:"Date"`
+	Name    string `dynamodbav:"Name"`
+	Message string `dynamodbav:"Message"`
+}
+
+func (post Post) GetKey() map[string]types.AttributeValue {
+	date, err := attributevalue.Marshal(post.Date)
+	if err != nil {
+		panic(err)
+	}
+	/*name, err := attributevalue.Marshal(post.Name)
+	if err != nil {
+		panic(err)
+	}*/
+	return map[string]types.AttributeValue{"Date": date /*, "Name": name*/}
+}
 
 func ServerLoop() {
 	jidouCfg, err := jidouConfig.LoadConfiguration()
@@ -48,25 +70,50 @@ func ServerLoop() {
 }
 
 func get(c echo.Context, db *dynamodb.Client) error {
-	resp, err := db.ListTables(context.TODO(), &dynamodb.ListTablesInput{
-		Limit: aws.Int32(5),
+	var err error
+	var response *dynamodb.ScanOutput
+	var posts []Post
+
+	scanPaginator := dynamodb.NewScanPaginator(db, &dynamodb.ScanInput{
+		TableName: aws.String(TableName),
+		Limit:     aws.Int32(10),
+	})
+	for scanPaginator.HasMorePages() {
+		response, err = scanPaginator.NextPage(context.TODO())
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err.Error())
+		} else {
+			var postPage []Post
+			err = attributevalue.UnmarshalListOfMaps(response.Items, &postPage)
+			if err != nil {
+				return c.JSON(http.StatusInternalServerError, err.Error())
+			} else {
+				posts = append(posts, postPage...)
+			}
+		}
+	}
+	return c.JSON(http.StatusOK, posts)
+}
+
+func post(c echo.Context, db *dynamodb.Client) error {
+	u := new(
+		struct {
+			Name    string `json:"name"`
+			Message string `json:"message"`
+		})
+	if err := c.Bind(u); err != nil {
+		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	item, err := attributevalue.MarshalMap(Post{time.Now().Format(time.RFC3339), u.Name, u.Message})
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, err.Error())
+	}
+	_, err = db.PutItem(context.TODO(), &dynamodb.PutItemInput{
+		TableName: aws.String(TableName),
+		Item:      item,
 	})
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
 	}
-	var strBuilder strings.Builder
-	strBuilder.WriteString("Tables:\t[")
-	for index, tableName := range resp.TableNames {
-		strBuilder.WriteString(tableName)
-		if index != len(resp.TableNames)-1 {
-			strBuilder.WriteString(",")
-		} else {
-			strBuilder.WriteString("]")
-		}
-	}
-	return c.String(http.StatusOK, strBuilder.String())
-}
-
-func post(c echo.Context, db *dynamodb.Client) error {
-	return c.String(http.StatusOK, "Hello, World!")
+	return c.JSON(http.StatusCreated, u)
 }
