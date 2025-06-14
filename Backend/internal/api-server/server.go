@@ -7,6 +7,7 @@ import (
 	jidouDSQL "jidou/internal/dsql"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
@@ -23,7 +24,7 @@ type PostReq struct {
 	Message string `json:"message"`
 }
 type PostResp struct {
-	Date string `json:"date"`
+	Date time.Time `json:"date"`
 	PostReq
 }
 
@@ -73,7 +74,7 @@ func createTableIfNotExists(ctx context.Context, pool *pgxpool.Pool) error {
 				CREATE TABLE IF NOT EXISTS %s (
 				    date timestamptz PRIMARY KEY DEFAULT CURRENT_TIMESTAMP,
     				name text NOT NULL,
-    				message text NOT NULL,
+    				message text NOT NULL
 				)`, TableName)
 	_, err := pool.Exec(ctx, query)
 	if err != nil {
