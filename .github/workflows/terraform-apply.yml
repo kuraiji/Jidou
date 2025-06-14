@@ -16,6 +16,7 @@ on:
 env:
   TF_CLOUD_ORGANIZATION: "Kuraiji"
   TF_API_TOKEN: "${{ secrets.TF_API_TOKEN }}"
+  TF_VAR_PARAM_NAME: "${{ secrets.TF_VAR_PARAM_NAME }}"
   TF_WORKSPACE: "Jidou"
   CONFIG_DIRECTORY: "./"
 
