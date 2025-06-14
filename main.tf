@@ -6,7 +6,7 @@ resource "random_uuid" "param_uuid" {}
 
 module "smm" {
   source = "./modules/smm"
-  param_name = var.param_name
+  param_name = var.PARAM_NAME
   param_value = random_uuid.param_uuid.id
 }
 
