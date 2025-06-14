@@ -1,4 +1,5 @@
 name: "Terraform Manual"
+
 on:
   workflow_dispatch:
     inputs:
@@ -46,7 +47,8 @@ jobs:
           workspace: ${{ env.TF_WORKSPACE }}
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
           is_destroy: true
-          target: 'module.s3', "module.smm"
+          target: 'module.s3'
+          target: 'module.smm'
 
       - name: Run Plan
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
