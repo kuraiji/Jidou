@@ -10,8 +10,8 @@ module "smm" {
   param_value = random_uuid.param_uuid.id
 }
 
-module "dsql" {
+/*module "dsql" {
   source = "./modules/dsql"
   cluster_name = "JIDOU"
   is_deletion_protected = false
-}
+}*/
