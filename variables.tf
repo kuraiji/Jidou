@@ -9,3 +9,9 @@ variable "PARAM_NAME" {
   default = "MyParam"
   description = "The name of the param."
 }
+
+variable "IMAGE_URI" {
+  type = string
+  default = ""
+  description = "The uri of the image file."
+}

@@ -8,7 +8,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/dsql/auth v1.0.10
 	github.com/aws/aws-sdk-go-v2/service/dsql v1.5.1
 	github.com/aws/aws-sdk-go-v2/service/ssm v1.59.2
-	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4

@@ -10,6 +10,12 @@ module "smm" {
   param_value = random_uuid.param_uuid.id
 }
 
+module "ecs" {
+  source = "./modules/ecs"
+  cluster_name = "jidou"
+  image_uri = var.IMAGE_URI
+}
+
 /*module "dsql" {
   source = "./modules/dsql"
   cluster_name = "JIDOU"

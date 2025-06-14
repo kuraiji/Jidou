@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  jidou-backend:
+    container_name: "jidou-backend"
+    build:
+      context: .
+      tags:
+        - ${AWS_TAG}
+        - "jidou-backend"
+    ports:
+      - "8080:8080"
+    env_file: ".env"
+    environment:
+      - REGION=${REGION}
+      - SSM_PARAMETER_NAME=${SSM_PARAMETER_NAME}
+      - CLUSTER_ENDPOINT=${CLUSTER_ENDPOINT}
+      - DB_PORT=${DB_PORT}
+      - CLUSTER_USER=${CLUSTER_USER}
+      - DB_NAME=${DB_NAME}
+      - TOKEN_REFRESH_INTERVAL={TOKEN_REFRESH_INTERVAL}
