@@ -6,6 +6,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'development'
 
 env:
   TF_CLOUD_ORGANIZATION: "Kuraiji"

@@ -4,7 +4,7 @@ variable "instance_region" {
   description = "The region of the project"
 }
 
-variable "param_name" {
+variable "PARAM_NAME" {
   type = string
   default = "MyParam"
   description = "The name of the param."
