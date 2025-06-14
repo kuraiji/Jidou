@@ -39,7 +39,7 @@ jobs:
           workspace: ${{ env.TF_WORKSPACE }}
           configuration_version: ${{ steps.apply-upload.outputs.configuration_version_id }}
           is_destroy: true
-          target: 'module.s3'
+          target: 'module.s3', "module.smm"
 
       - name: Destroy
         uses: hashicorp/tfc-workflows-github/actions/apply-run@v1.3.2
