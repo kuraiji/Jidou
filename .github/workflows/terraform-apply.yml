@@ -1,8 +1,8 @@
 name: "Terraform Apply"
 
 on:
-  schedule:
-    - cron: "45 22 * * *"
+  #schedule:
+    #- cron: "45 22 * * *"
   push:
     branches:
       - main

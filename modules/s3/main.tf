@@ -7,6 +7,10 @@ resource "aws_s3_bucket" "bucket" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "unblock" {
+  bucket = aws_s3_bucket.bucket.id
+}
+
 data "local_file" "index_file" {
   filename = "./index.html"
 }
@@ -38,10 +42,6 @@ resource "aws_s3_bucket_website_configuration" "website" {
   error_document {
     key = var.error_document
   }
-}
-
-resource "aws_s3_bucket_public_access_block" "unblock" {
-  bucket = aws_s3_bucket.bucket.id
 }
 
 data "aws_iam_policy_document" "policy" {
