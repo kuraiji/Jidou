@@ -42,7 +42,7 @@ resource "aws_iam_role" "ecs_execution_role" {
 
 data "aws_iam_policy_document" "ecs_policy_document" {
   statement {
-    sid    = "DsqlBasicPermissions"
+    sid    = "DsqlSsmBasicPermissions"
     effect = "Allow"
     actions = [
       "dsql:GetCluster",
@@ -50,25 +50,22 @@ data "aws_iam_policy_document" "ecs_policy_document" {
       "dsql:ListClusters",
       "dsql:DbConnectAdmin",
       "dsql:DbConnect",
+      "ssm:GetParameters",
+      "ssm:GetParameter",
+      "ssm:GetParametersByPath"
     ]
     resources = ["*"]
   }
 }
 
 resource "aws_iam_policy" "ecs_policy" {
-  name = "${var.cluster_name}_ecs_dsql_policy"
+  name = "${var.cluster_name}_ecs_dsql_ssm_policy"
   description = "The role for ecs role that will give the container access to the DSQL cluster."
   policy = data.aws_iam_policy_document.ecs_policy_document.json
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_attach_dsql" {
-  //policy_arn = aws_iam_policy.ecs_policy.arn
-  policy_arn = "arn:aws:iam::aws:policy/AmazonAuroraDSQLFullAccess"
-  role       = aws_iam_role.ecs_role.name
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_attach_ssm" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+  policy_arn = aws_iam_policy.ecs_policy.arn
   role       = aws_iam_role.ecs_role.name
 }
 
@@ -80,7 +77,7 @@ resource "aws_iam_role_policy_attachment" "ecs_attach_execution_ecr" {
 resource "aws_ecs_task_definition" "task" {
   family = "${var.cluster_name}-backend"
   requires_compatibilities = ["EC2"]
-  network_mode = "awsvpc"
+  network_mode = "bridge"
   task_role_arn = aws_iam_role.ecs_role.arn
   execution_role_arn = aws_iam_role.ecs_execution_role.arn
   container_definitions = jsonencode([
@@ -94,8 +91,11 @@ resource "aws_ecs_task_definition" "task" {
         {
           containerPort = var.exposed_port
           hostPort = var.exposed_port
+          appProtocol = "http"
+          name = "${var.cluster_name}_port"
         }
       ]
+      environment = [{name = "REGION", value = var.region}]
     }
   ])
 }
@@ -131,21 +131,9 @@ resource "aws_iam_instance_profile" "ec2_instance_profile" {
 
 resource "aws_security_group" "ec2_security" {
   name = "${var.cluster_name}_security_group"
-  description = "Allow SSH Ingress, App Ports Ingress and Allow Anywhere Egress"
+  description = "Allow App Ports Ingress and Allow Anywhere Egress"
   tags = {
     Name = "${var.cluster_name}_security_group"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "ssh_ingress" {
-  description = "Allows SSH"
-  security_group_id = aws_security_group.ec2_security.id
-  cidr_ipv4 = "0.0.0.0/0"
-  from_port = 22
-  to_port = 22
-  ip_protocol = "tcp"
-  tags = {
-    Name = "SSH"
   }
 }
 
@@ -199,55 +187,14 @@ echo ECS_CLUSTER="${var.cluster_name}" >> /etc/ecs/ecs.config
   EOF
 }
 
-data "aws_vpc" "default" {
-  default = true
-}
-
-data "aws_subnets" "default" {
-  filter {
-    name = "vpc-id"
-    values = [data.aws_vpc.default.id]
-  }
-}
-
-resource "aws_security_group" "app_security" {
-  name = "${var.cluster_name}_app_security_group"
-  description = "Allow App Required Port Ingress and Allow Anywhere Egress"
-  tags = {
-    Name = "${var.cluster_name}_security_group"
-  }
-}
-
-resource "aws_vpc_security_group_ingress_rule" "http_ingress" {
-  description = "Opens Specific App Ports Inbound"
-  security_group_id = aws_security_group.app_security.id
-  cidr_ipv4 = "0.0.0.0/0"
-  from_port = var.exposed_port
-  to_port = var.exposed_port
-  ip_protocol = "tcp"
-  tags = {
-    Name = "App Ports"
-  }
-}
-
-resource "aws_vpc_security_group_egress_rule" "app_egress" {
-  description = "Allows Anywhere Egress"
-  security_group_id = aws_security_group.app_security.id
-  cidr_ipv4 = "0.0.0.0/0"
-  ip_protocol = "-1"
-  tags = {
-    Name = "Egress Anywhere"
-  }
-}
-
 resource "aws_ecs_service" "app" {
   name = "${var.cluster_name}_app"
   cluster = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.task.arn
   scheduling_strategy = "DAEMON"
-  network_configuration {
-    subnets = data.aws_subnets.default.ids
-    security_groups = [aws_security_group.app_security.id]
+  force_delete = true
+
+  timeouts {
+    delete = "1m"
   }
-  depends_on = [aws_instance.ec2]
 }

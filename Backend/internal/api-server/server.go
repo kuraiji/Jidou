@@ -9,9 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	awsConfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/ssm"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -34,11 +31,7 @@ func ServerLoop() {
 	if err != nil {
 		log.Fatalf("unable to load Jidou config, %v", err)
 	}
-	awsCfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion(jidouCfg.Region))
-	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
-	}
-	poolWrapper, err := jidouDSQL.NewPool(ctx)
+	poolWrapper, err := jidouDSQL.NewPool(ctx, jidouCfg)
 	if err != nil {
 		log.Fatalf("unable to make new pool, %v", err)
 	}
@@ -47,10 +40,13 @@ func ServerLoop() {
 	if err := pool.Ping(ctx); err != nil {
 		log.Fatalf("unable to ping database, %v", err)
 	}
-	smmSvc := ssm.NewFromConfig(awsCfg)
+	/*smmSvc := ssm.NewFromConfig(awsCfg)
 	param, err := smmSvc.GetParameter(context.TODO(), &ssm.GetParameterInput{
 		Name: aws.String(jidouCfg.ParameterName),
 	})
+	if err != nil {
+		log.Fatalf("unable to get parameter, %v", err)
+	}*/
 	e := echo.New()
 	e.GET("/", func(c echo.Context) error { return get(c, ctx, pool) })
 	e.POST("/", func(c echo.Context) error { return post(c, ctx, pool) })
@@ -60,7 +56,7 @@ func ServerLoop() {
 			if key == "" {
 				return echo.ErrUnauthorized
 			}
-			if key != *param.Parameter.Value {
+			if key != jidouCfg.ApiKey {
 				return echo.ErrUnauthorized
 			}
 			return next(c)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	jidouConfig "jidou/internal/config"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -162,26 +161,26 @@ func (p *Pool) refreshTokenPeriodically() {
 	}
 }
 
-func NewPool(ctx context.Context) (*Pool, error) {
-	jidouCfg, err := jidouConfig.LoadConfiguration()
+func NewPool(ctx context.Context, configuration *jidouConfig.Configuration) (*Pool, error) {
+	/*jidouCfg, err := jidouConfig.LoadConfiguration()
 	if err != nil {
 		log.Fatalf("unable to load Jidou config, %v", err)
-	}
+	}*/
 	poolCtx, cancel := context.WithCancel(ctx)
-	region := jidouCfg.Region
+	region := configuration.Region
 	client, err := NewDSQLClient(poolCtx, region)
 	if err != nil {
 		cancel()
 		return nil, fmt.Errorf("failed to create DSQL client: %v", err)
 	}
 	dbConfig := Config{
-		Host:                 jidouCfg.ClusterEndpoint,
-		Port:                 jidouCfg.Port,
-		User:                 jidouCfg.User,
+		Host:                 configuration.ClusterEndpoint,
+		Port:                 configuration.Port,
+		User:                 configuration.User,
 		Password:             "",
-		Database:             jidouCfg.DatabaseName,
-		Region:               jidouCfg.Region,
-		TokenRefreshInterval: jidouCfg.TokenRefreshInterval,
+		Database:             configuration.DatabaseName,
+		Region:               configuration.Region,
+		TokenRefreshInterval: configuration.TokenRefreshInterval,
 	}
 	token, err := GenerateDbConnectAuthToken(poolCtx, dbConfig.Host, dbConfig.Region, dbConfig.User)
 	if err != nil {
@@ -262,8 +261,8 @@ func (p *Pool) DemonstrateConnectionRefresh(ctx context.Context) error {
 }
 
 // GetConnectionPool creates a new connection pool with token refresh capability
-func getConnectionPool(ctx context.Context, clusterEndpoint string, region string) (*pgxpool.Pool, error) {
-	pool, err := NewPool(ctx)
+func getConnectionPool(ctx context.Context, clusterEndpoint string, region string, configuration *jidouConfig.Configuration) (*pgxpool.Pool, error) {
+	pool, err := NewPool(ctx, configuration)
 	if err != nil {
 		return nil, err
 	}

@@ -21,3 +21,9 @@ variable "ssh_key_name" {
   default = "MyKey"
   description = "The name of the ssh key you have created on AWS EC2 console."
 }
+
+variable "region" {
+  type = string
+  default = "us-west-1"
+  description = "The region that will be set for the env variable."
+}

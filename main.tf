@@ -14,8 +14,10 @@ module "ecs" {
   source = "./modules/ecs"
   cluster_name = "jidou"
   image_uri = var.IMAGE_URI
-  exposed_port = 8080
+  exposed_port = 1323
   ssh_key_name = "jidou_key"
+  region = var.instance_region
+  depends_on = [module.smm]
 }
 
 /*module "dsql" {
