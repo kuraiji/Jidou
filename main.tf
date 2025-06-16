@@ -1,6 +1,6 @@
-module "s3" {
+/* "s3" {
   source = "./modules/s3"
-}
+}*/
 
 resource "random_uuid" "param_uuid" {}
 
@@ -14,6 +14,8 @@ module "ecs" {
   source = "./modules/ecs"
   cluster_name = "jidou"
   image_uri = var.IMAGE_URI
+  exposed_port = 8080
+  ssh_key_name = "jidou_key"
 }
 
 /*module "dsql" {

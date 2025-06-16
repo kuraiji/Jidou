@@ -35,4 +35,4 @@ terraform.rc
 
 *OTHERS*
 /.idea/
-
+/jidou_key.pem
