@@ -17,7 +17,6 @@ module "ecs" {
   exposed_port = 1323
   ssh_key_name = "jidou_key"
   region = var.instance_region
-  depends_on = [module.smm]
 }
 
 /*module "dsql" {

@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    time = {
+      source  = "hashicorp/time"
+      version = "0.12.1"
+    }
+  }
+}
 resource "aws_ecs_cluster" "cluster" {
   name = var.cluster_name
 }
@@ -187,14 +195,27 @@ echo ECS_CLUSTER="${var.cluster_name}" >> /etc/ecs/ecs.config
   EOF
 }
 
+resource "time_sleep" "delete_delay" {
+  create_duration = "1m"
+  destroy_duration = "1m"
+}
+
 resource "aws_ecs_service" "app" {
   name = "${var.cluster_name}_app"
   cluster = aws_ecs_cluster.cluster.id
   task_definition = aws_ecs_task_definition.task.arn
   scheduling_strategy = "DAEMON"
   force_delete = true
-
-  timeouts {
-    delete = "1m"
-  }
+  depends_on = [time_sleep.delete_delay]
+  /*provisioner "local-exec" {
+    when = destroy
+    command = <<EOF
+EC2_ARR=$(aws ec2 describe-instances --query "Reservations[].Instances[].InstanceId" --filters "Name=instance-state-name,Values=running" --region "us-east-1")
+EC2_ID=$(echo -n $EC2_ARR |  head -c -3)
+EC2_ID=$(echo -n $EC2_ID | tail -c +3)
+EC2_ID=$(echo "$${EC2_ID:1}")
+echo $EC2_ID
+aws ec2 terminate-instances --instance-ids $EC2_ID  --region "us-east-1"
+EOF
+  }*/
 }

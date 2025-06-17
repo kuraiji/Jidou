@@ -1,7 +1,8 @@
 name: "Terraform Plan"
 
-#on:
+on:
   #pull_request:
+  workflow_dispatch:
 
 env:
   TF_CLOUD_ORGANIZATION: "Kuraiji"
