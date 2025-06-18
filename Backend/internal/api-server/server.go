@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	goaway "github.com/TwiN/go-away"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
@@ -40,16 +41,10 @@ func ServerLoop() {
 	if err := pool.Ping(ctx); err != nil {
 		log.Fatalf("unable to ping database, %v", err)
 	}
-	/*smmSvc := ssm.NewFromConfig(awsCfg)
-	param, err := smmSvc.GetParameter(context.TODO(), &ssm.GetParameterInput{
-		Name: aws.String(jidouCfg.ParameterName),
-	})
-	if err != nil {
-		log.Fatalf("unable to get parameter, %v", err)
-	}*/
+	defer pool.Close()
 	e := echo.New()
-	e.GET("/", func(c echo.Context) error { return get(c, ctx, pool) })
-	e.POST("/", func(c echo.Context) error { return post(c, ctx, pool) })
+	e.GET("/", func(c echo.Context) error { return get(c, ctx, poolWrapper) })
+	e.POST("/", func(c echo.Context) error { return post(c, ctx, poolWrapper) })
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			key := c.Request().Header.Get(echo.HeaderAuthorization)
@@ -79,7 +74,8 @@ func createTableIfNotExists(ctx context.Context, pool *pgxpool.Pool) error {
 	return nil
 }
 
-func get(c echo.Context, ctx context.Context, pool *pgxpool.Pool) error {
+func get(c echo.Context, ctx context.Context, poolWrapper *jidouDSQL.Pool) error {
+	pool := poolWrapper.Pool
 	err := createTableIfNotExists(ctx, pool)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -98,7 +94,8 @@ func get(c echo.Context, ctx context.Context, pool *pgxpool.Pool) error {
 	return c.JSON(http.StatusOK, posts)
 }
 
-func post(c echo.Context, ctx context.Context, pool *pgxpool.Pool) error {
+func post(c echo.Context, ctx context.Context, poolWrapper *jidouDSQL.Pool) error {
+	pool := poolWrapper.Pool
 	err := createTableIfNotExists(ctx, pool)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, err.Error())
@@ -106,6 +103,9 @@ func post(c echo.Context, ctx context.Context, pool *pgxpool.Pool) error {
 	p := new(PostReq)
 	if err := c.Bind(p); err != nil {
 		return c.JSON(http.StatusBadRequest, err.Error())
+	}
+	if goaway.IsProfane(p.Name) || goaway.IsProfane(p.Message) {
+		return c.JSON(http.StatusBadRequest, "No naughty messages allowed")
 	}
 	query := fmt.Sprintf("INSERT INTO %s (name, message) VALUES ($1, $2)", TableName)
 	if _, err := pool.Exec(ctx, query, p.Name, p.Message); err != nil {

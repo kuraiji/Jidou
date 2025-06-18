@@ -33,6 +33,42 @@ terraform.rc
 *GO*
 /Backend/.env
 
+*TS*
+/frontend/node_modules
+/frontend/.pnp
+/frontend/.pnp.*
+/frontend/.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+# testing
+/frontend//coverage
+# next.js
+/frontend/.next/
+/frontend/out/
+# production
+/frontend/build
+# misc
+/frontend/.DS_Store
+/frontend/*.pem
+# debug
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+/frontend/.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+
 *OTHERS*
 /.idea/
 /jidou_key.pem

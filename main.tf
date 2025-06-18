@@ -8,16 +8,18 @@ module "smm" {
   source = "./modules/smm"
   param_name = var.PARAM_NAME
   param_value = random_uuid.param_uuid.id
+  backend_ip = "127.0.0.1"
+  backend_port = "1323"
 }
 
-module "ecs" {
+/*module "ecs" {
   source = "./modules/ecs"
   cluster_name = "jidou"
   image_uri = var.IMAGE_URI
   exposed_port = 1323
   ssh_key_name = "jidou_key"
   region = var.instance_region
-}
+}*/
 
 /*module "dsql" {
   source = "./modules/dsql"

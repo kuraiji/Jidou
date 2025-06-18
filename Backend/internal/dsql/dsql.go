@@ -162,10 +162,6 @@ func (p *Pool) refreshTokenPeriodically() {
 }
 
 func NewPool(ctx context.Context, configuration *jidouConfig.Configuration) (*Pool, error) {
-	/*jidouCfg, err := jidouConfig.LoadConfiguration()
-	if err != nil {
-		log.Fatalf("unable to load Jidou config, %v", err)
-	}*/
 	poolCtx, cancel := context.WithCancel(ctx)
 	region := configuration.Region
 	client, err := NewDSQLClient(poolCtx, region)
@@ -261,7 +257,7 @@ func (p *Pool) DemonstrateConnectionRefresh(ctx context.Context) error {
 }
 
 // GetConnectionPool creates a new connection pool with token refresh capability
-func getConnectionPool(ctx context.Context, clusterEndpoint string, region string, configuration *jidouConfig.Configuration) (*pgxpool.Pool, error) {
+func getConnectionPool(ctx context.Context, configuration *jidouConfig.Configuration) (*pgxpool.Pool, error) {
 	pool, err := NewPool(ctx, configuration)
 	if err != nil {
 		return nil, err

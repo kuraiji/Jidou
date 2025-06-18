@@ -14,6 +14,7 @@ require (
 )
 
 require (
+	github.com/TwiN/go-away v1.6.15 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.69 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.31 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.35 // indirect
@@ -35,7 +36,7 @@ require (
 	github.com/valyala/fasttemplate v1.2.2 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/net v0.40.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
+	golang.org/x/sync v0.15.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/text v0.26.0 // indirect
 )
