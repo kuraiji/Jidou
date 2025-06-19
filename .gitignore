@@ -28,7 +28,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
-/.terraform.lock.hcl
 
 *GO*
 /Backend/.env
@@ -73,3 +72,5 @@ next-env.d.ts
 /.idea/
 /jidou_key.pem
 /frontend_old/
+/Backend/public/
+/.terraform.lock.hcl

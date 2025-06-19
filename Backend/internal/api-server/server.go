@@ -7,12 +7,14 @@ import (
 	jidouDSQL "jidou/internal/dsql"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	goaway "github.com/TwiN/go-away"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const TableName = "jidou"
@@ -43,9 +45,15 @@ func ServerLoop() {
 	}
 	defer pool.Close()
 	e := echo.New()
-	e.GET("/", func(c echo.Context) error { return get(c, ctx, poolWrapper) })
-	e.POST("/", func(c echo.Context) error { return post(c, ctx, poolWrapper) })
-	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+	e.GET("/api", func(c echo.Context) error { return get(c, ctx, poolWrapper) })
+	e.POST("/api", func(c echo.Context) error { return post(c, ctx, poolWrapper) })
+	if os.Getenv("ENV") == "development" {
+		e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+			AllowOrigins: []string{"http://localhost:5173"},
+			AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
+		}))
+	}
+	/*e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			key := c.Request().Header.Get(echo.HeaderAuthorization)
 			if key == "" {
@@ -56,7 +64,10 @@ func ServerLoop() {
 			}
 			return next(c)
 		}
-	})
+	})*/
+	if os.Getenv("ENV") == "production" {
+		e.Static("/", "public")
+	}
 	e.Logger.Fatal(e.Start(":1323"))
 }
 

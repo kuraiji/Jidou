@@ -5,7 +5,7 @@ resource "aws_ssm_parameter" "param" {
 
 }
 
-resource "aws_ssm_parameter" "backend_ip" {
+/*resource "aws_ssm_parameter" "backend_ip" {
   name = "/JIDOU-API/BACKEND_IP"
   type = "String"
   value = "69.69.69.60"
@@ -15,4 +15,4 @@ resource "aws_ssm_parameter" "backend_port" {
   name = "/JIDOU-API/BACKEND_PORT"
   type = "String"
   value = 1323
-}
+}*/

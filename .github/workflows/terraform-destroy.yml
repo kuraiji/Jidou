@@ -1,8 +1,8 @@
 name: "Terraform Destroy"
 
 on:
-  #schedule:
-    #- cron: "45 23 * * *"
+  schedule:
+    - cron: "25 21 * * *"
   workflow_dispatch:
 
 env:

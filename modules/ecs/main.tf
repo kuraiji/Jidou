@@ -1,3 +1,11 @@
+terraform {
+  required_providers {
+    cloudflare = {
+      source  = "cloudflare/cloudflare"
+      version = "5.6.0"
+    }
+  }
+}
 resource "aws_ecs_cluster" "cluster" {
   name = var.cluster_name
 }
@@ -90,31 +98,14 @@ resource "aws_ecs_task_definition" "task" {
       portMappings = [
         {
           containerPort = var.exposed_port
-          hostPort = var.exposed_port
+          hostPort = 80
           appProtocol = "http"
           name = "${var.cluster_name}_port"
         }
       ]
-      environment = [{name = "REGION", value = var.region}]
-    },
-    {
-      name = "frontend"
-      image = var.frontend_image_uri
-      essential = true
-      memory = 400
-      cpu = 400
-      portMappings = [
-        {
-          containerPort = var.frontend_port
-          hostPort = 80
-          appProtocol = "http"
-          name = "${var.cluster_name}_frontend_port"
-        }
-      ]
       environment = [
         {name = "REGION", value = var.region},
-        {name = "AWS_ACCESS_KEY_ID", value = var.frontend_aki},
-        {name = "AWS_SECRET_ACCESS_KEY", value = var.frontend_asak},
+        {name = "ENV", value = "production"}
       ]
     }
   ])
@@ -233,4 +224,13 @@ resource "aws_ecs_service" "app" {
   scheduling_strategy = "DAEMON"
   force_delete = true
   depends_on = [time_sleep.delete_delay]
+}
+
+resource "cloudflare_dns_record" "dns_record" {
+  zone_id = var.zone_id
+  name = "jidou"
+  type = "CNAME"
+  proxied = false
+  ttl = 1
+  content = aws_instance.ec2.public_dns
 }

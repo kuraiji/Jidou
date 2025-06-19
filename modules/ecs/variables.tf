@@ -51,3 +51,9 @@ variable "frontend_asak" {
   default = ""
   description = "Permission restricted ASAK."
 }
+
+variable "zone_id" {
+  type = string
+  default = ""
+  description = "Zone ID."
+}
