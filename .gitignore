@@ -72,3 +72,4 @@ next-env.d.ts
 *OTHERS*
 /.idea/
 /jidou_key.pem
+/frontend_old/

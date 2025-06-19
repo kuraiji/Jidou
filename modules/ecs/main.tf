@@ -1,4 +1,3 @@
-
 resource "aws_ecs_cluster" "cluster" {
   name = var.cluster_name
 }
@@ -83,11 +82,11 @@ resource "aws_ecs_task_definition" "task" {
   execution_role_arn = aws_iam_role.ecs_execution_role.arn
   container_definitions = jsonencode([
     {
-      name = "main"
+      name = "backend"
       image = var.image_uri
       essential = true
-      memory = 512
-      cpu = 512
+      memory = 400
+      cpu = 400
       portMappings = [
         {
           containerPort = var.exposed_port
@@ -97,6 +96,26 @@ resource "aws_ecs_task_definition" "task" {
         }
       ]
       environment = [{name = "REGION", value = var.region}]
+    },
+    {
+      name = "frontend"
+      image = var.frontend_image_uri
+      essential = true
+      memory = 400
+      cpu = 400
+      portMappings = [
+        {
+          containerPort = var.frontend_port
+          hostPort = 80
+          appProtocol = "http"
+          name = "${var.cluster_name}_frontend_port"
+        }
+      ]
+      environment = [
+        {name = "REGION", value = var.region},
+        {name = "AWS_ACCESS_KEY_ID", value = var.frontend_aki},
+        {name = "AWS_SECRET_ACCESS_KEY", value = var.frontend_asak},
+      ]
     }
   ])
 }
@@ -142,8 +161,8 @@ resource "aws_vpc_security_group_ingress_rule" "http_ingress_ec2" {
   description = "Opens Specific App Ports Inbound"
   security_group_id = aws_security_group.ec2_security.id
   cidr_ipv4 = "0.0.0.0/0"
-  from_port = var.exposed_port
-  to_port = var.exposed_port
+  from_port = 80
+  to_port = 80
   ip_protocol = "tcp"
   tags = {
     Name = "App Ports"
@@ -188,9 +207,23 @@ echo ECS_CLUSTER="${var.cluster_name}" >> /etc/ecs/ecs.config
   EOF
 }
 
+resource "aws_ssm_parameter" "backend_ip" {
+  name = "/JIDOU-API/BACKEND_IP"
+  type = "String"
+  value = aws_instance.ec2.public_ip
+
+}
+
+resource "aws_ssm_parameter" "backend_port" {
+  name = "/JIDOU-API/BACKEND_PORT"
+  type = "String"
+  value = tostring(var.exposed_port)
+
+}
+
 resource "time_sleep" "delete_delay" {
-  create_duration = "1m"
-  destroy_duration = "1m"
+  create_duration = "70s"
+  destroy_duration = "70s"
 }
 
 resource "aws_ecs_service" "app" {
